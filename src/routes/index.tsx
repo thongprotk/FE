@@ -6,44 +6,54 @@ import LandingPage from "@/pages/LandingPage";
 import ReviewMode from "@/pages/ReviewMode";
 import HeatmapPage from "@/pages/HeatmapPage";
 import ChromeExtensionPopup from "@/pages/ChromeExtension";
+import LoginPage from "@/pages/LoginPage";
+import DecksPage from "@/pages/DecksPage";
 
 const router = createBrowserRouter([
-    {
-        path: "/",
-        element: <MainLayout />, // Layout chính
-        children: [
-            {
-                index: true,
-                element: <HomePage />,
-            },
-            {
-                path: "landing",
-                element: <LandingPage />,
-            },
-            {
-                path: "review",
-                element: <ReviewMode />,
-            },
-            {
-                path: "heatmap",
-                element: <HeatmapPage />,
-            },
-            {
-                path: "extension",
-                element: <ChromeExtensionPopup />,
-            },
-            {
-                path: "lesson",
-                element: <div>Bài học</div>,
-            },
-        ],
-    },
+  {
+    path: "/",
+    element: <MainLayout />, // Layout chính
+    children: [
+      {
+        index: true,
+        element: <HomePage />,
+      },
+      {
+        path: "landing",
+        element: <LandingPage />,
+      },
+      {
+        path: "login",
+        element: <LoginPage />,
+      },
+      {
+        path: "decks",
+        element: <DecksPage />,
+      },
+      {
+        path: "review",
+        element: <ReviewMode />,
+      },
+      {
+        path: "heatmap",
+        element: <HeatmapPage />,
+      },
+      {
+        path: "extension",
+        element: <ChromeExtensionPopup />,
+      },
+      {
+        path: "lesson",
+        element: <div>Bài học</div>,
+      },
+    ],
+  },
 
-    // 404
-    {
-        path: "*",
-        element: <NotFound />,
-    },
+  // 404
+  {
+    path: "*",
+    element: <NotFound />,
+  },
 ]);
 
 export default router;
