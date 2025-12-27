@@ -1,65 +1,68 @@
-// Content script for Chrome Extension
+// Content script for FlashAI Chrome extension
 console.log('FlashAI content script loaded')
 
+let highlightElement = null
+
+function removeHighlight() {
+  if (highlightElement) {
+    highlightElement.remove()
+    highlightElement = null
+  }
 }
-  }, 1000)
-    }
-      highlightElement = null
-      highlightElement.remove()
-    if (highlightElement) {
-  setTimeout(() => {
 
-  highlightElement.style.height = rect.height + 'px'
-  highlightElement.style.width = rect.width + 'px'
-  highlightElement.style.top = rect.top + 'px'
-  highlightElement.style.left = rect.left + 'px'
-
-  }
-    document.body.appendChild(highlightElement)
-    `
-      background: rgba(59, 130, 246, 0.1);
-      border-radius: 4px;
-      border: 2px solid #3b82f6;
-      z-index: 999999;
-      pointer-events: none;
-      position: fixed;
-    highlightElement.style.cssText = `
-    highlightElement = document.createElement('div')
-  if (!highlightElement) {
-
-  const rect = range.getBoundingClientRect()
-  const range = selection.getRangeAt(0)
-
-  if (!selection || selection.rangeCount === 0) return
-  const selection = window.getSelection()
 function showHighlight() {
+  const selection = window.getSelection()
+  if (!selection || selection.rangeCount === 0) return
 
-let highlightElement: HTMLDivElement | null = null
-// Add context menu highlight indicator
+  const range = selection.getRangeAt(0)
+  const rect = range.getBoundingClientRect()
 
-})
-  return true
+  if (!highlightElement) {
+    highlightElement = document.createElement('div')
+    highlightElement.style.cssText = `
+      position: fixed;
+      pointer-events: none;
+      z-index: 999999;
+      border: 2px solid #3b82f6;
+      border-radius: 4px;
+      background: rgba(59, 130, 246, 0.08);
+      transition: opacity 0.15s ease;
+    `
+    document.body.appendChild(highlightElement)
   }
-    sendResponse({ text: selectedText || '' })
-    const selectedText = window.getSelection()?.toString().trim()
-  if (request.type === 'GET_SELECTED_TEXT') {
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-// Listen for messages from popup
 
-})
-  }
-    })
-      title: document.title
-      url: window.location.href,
-      text: selectedText,
-      type: 'TEXT_SELECTED',
-    chrome.runtime.sendMessage({
-    // Send selected text to background script
-  if (selectedText && selectedText.length > 20) {
+  highlightElement.style.top = `${rect.top}px`
+  highlightElement.style.left = `${rect.left}px`
+  highlightElement.style.width = `${rect.width}px`
+  highlightElement.style.height = `${rect.height}px`
 
+  setTimeout(removeHighlight, 1200)
+}
+
+function notifySelection() {
   const selectedText = window.getSelection()?.toString().trim()
-document.addEventListener('mouseup', () => {
-// Listen for text selection
+  if (!selectedText || selectedText.length < 5) return
 
-// This script runs on all web pages and enables text selection capture
+  chrome.runtime.sendMessage({
+    type: 'TEXT_SELECTED',
+    text: selectedText,
+    url: window.location.href,
+    title: document.title,
+  })
+}
+
+// Listen for text selection release
+document.addEventListener('mouseup', () => {
+  showHighlight()
+  notifySelection()
+})
+
+// Respond to popup requests for the current selection
+chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+  if (request.type === 'GET_SELECTED_TEXT') {
+    const selectedText = window.getSelection()?.toString().trim() || ''
+    sendResponse({ text: selectedText })
+  }
+  return true
+})
 

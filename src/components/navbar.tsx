@@ -1,58 +1,159 @@
-import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@/components/ui/navigation-menu"
-import { Button } from "@/components/ui/button"
-import { Menu } from "lucide-react"
+import { useMemo, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Menu, X, LogIn, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+
+const links = [
+  { label: "Home", to: "/" },
+  { label: "Decks", to: "/decks" },
+  { label: "Review", to: "/review" },
+  { label: "Heatmap", to: "/heatmap" },
+  { label: "Lesson", to: "/lesson" },
+];
 
 export default function Navbar() {
-    return (
-        <nav className="border-b">
-            <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-                {/* Logo */}
-                <div className="text-xl font-bold">
-                    Logo
-                </div>
+  const { isAuthenticated, user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
 
-                {/* Desktop Menu */}
-                <NavigationMenu className="hidden md:flex">
-                    <NavigationMenuList>
-                        <NavigationMenuItem>
-                            <NavigationMenuLink href="/" className="px-4 py-2 hover:text-primary">
-                                Home
-                            </NavigationMenuLink>
-                        </NavigationMenuItem>
-                        <NavigationMenuItem>
-                            <NavigationMenuLink href="/landing" className="px-4 py-2 hover:text-primary">
-                                Landing
-                            </NavigationMenuLink>
-                        </NavigationMenuItem>
-                        <NavigationMenuItem>
-                            <NavigationMenuLink href="/review" className="px-4 py-2 hover:text-primary">
-                                Review
-                            </NavigationMenuLink>
-                        </NavigationMenuItem>
-                        <NavigationMenuItem>
-                            <NavigationMenuLink href="/heatmap" className="px-4 py-2 hover:text-primary">
-                                Heatmap
-                            </NavigationMenuLink>
-                        </NavigationMenuItem>
-                        <NavigationMenuItem>
-                            <NavigationMenuLink href="/extension" className="px-4 py-2 hover:text-primary">
-                                Extension
-                            </NavigationMenuLink>
-                        </NavigationMenuItem>
-                    </NavigationMenuList>
-                </NavigationMenu>
+  const brand = useMemo(() => "Personalized Learning", []);
 
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" className="hidden md:inline-flex">
-                        Login
-                    </Button>
-                    <Button>Sign Up</Button>
-                    <Button variant="ghost" size="icon" className="md:hidden">
-                        <Menu className="h-6 w-6" />
-                    </Button>
-                </div>
+  const handleLogout = () => {
+    logout();
+    navigate("/landing");
+  };
+
+  const renderLinks = (className: string) => (
+    <div className={className}>
+      {links.map((link) => (
+        <NavLink
+          key={link.to}
+          to={link.to}
+          className={({ isActive }) =>
+            `px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+              isActive ? "text-primary" : "text-foreground hover:text-primary"
+            }`
+          }
+          onClick={() => setOpen(false)}
+        >
+          {link.label}
+        </NavLink>
+      ))}
+    </div>
+  );
+
+  return (
+    <nav className="border-b bg-background/80 backdrop-blur">
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <button
+          onClick={() => navigate("/")}
+          className="text-lg md:text-xl font-bold tracking-tight hover:text-primary transition-colors"
+        >
+          {brand}
+        </button>
+
+        <div className="hidden md:flex items-center gap-6">
+          {renderLinks("flex items-center gap-2")}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {isAuthenticated ? (
+            <>
+              <span className="hidden md:inline text-sm text-muted-foreground">
+                {user?.firstName || user?.username || "User"}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/decks")}
+              >
+                Dashboard
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden md:inline-flex"
+                onClick={() => navigate("/login")}
+              >
+                <LogIn className="h-4 w-4 mr-2" />
+                Login
+              </Button>
+            </>
+          )}
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setOpen((prev) => !prev)}
+            aria-label="Toggle navigation"
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-6 w-6" />}
+          </Button>
+        </div>
+      </div>
+
+      {open && (
+        <div className="md:hidden border-t bg-background">
+          <div className="container mx-auto px-4 py-3 space-y-3">
+            {renderLinks("flex flex-col gap-1")}
+            <div className="flex flex-col gap-2 pt-2">
+              {isAuthenticated ? (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      navigate("/decks");
+                      setOpen(false);
+                    }}
+                  >
+                    Dashboard
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      handleLogout();
+                      setOpen(false);
+                    }}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      navigate("/login");
+                      setOpen(false);
+                    }}
+                  >
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Login
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      navigate("/landing");
+                      setOpen(false);
+                    }}
+                  >
+                    Sign Up
+                  </Button>
+                </>
+              )}
             </div>
-        </nav>
-    )
+          </div>
+        </div>
+      )}
+    </nav>
+  );
 }

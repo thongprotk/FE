@@ -5,7 +5,7 @@ import MainLayout from "@/layouts/MainLayout";
 import LandingPage from "@/pages/LandingPage";
 import ReviewMode from "@/pages/ReviewMode";
 import HeatmapPage from "@/pages/HeatmapPage";
-import ChromeExtensionPopup from "@/pages/ChromeExtension";
+import LessonBuilderPage from "@/pages/LessonBuilder";
 import LoginPage from "@/pages/LoginPage";
 import DecksPage from "@/pages/DecksPage";
 
@@ -39,12 +39,8 @@ const router = createBrowserRouter([
         element: <HeatmapPage />,
       },
       {
-        path: "extension",
-        element: <ChromeExtensionPopup />,
-      },
-      {
         path: "lesson",
-        element: <div>Bài học</div>,
+        element: <LessonBuilderPage />,
       },
     ],
   },

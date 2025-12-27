@@ -7,25 +7,31 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Zap, Chrome, BarChart3, CheckCircle } from "lucide-react";
+import {
+  Brain,
+  Zap,
+  Chrome,
+  BarChart3,
+  CheckCircle,
+  BookOpen,
+} from "lucide-react";
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-20 px-4 bg-gradient-to-b from-primary/10 to-background">
+      <section className="relative py-20 px-4 bg-linear-to-b from-primary/10 to-background">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center space-y-6">
             <Badge variant="secondary" className="mb-4">
-              🎓 AI-Powered Learning Platform
+              🎓 Personalized Learning System
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-              Learn Smarter with{" "}
-              <span className="text-primary">AI Flashcards</span>
+              Personalized Learning System (SRS + GenAI)
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Transform your learning experience with AI-generated flashcards,
-              smart review systems, and detailed progress tracking
+              Nền tảng học tập cá nhân hóa: thu thập tri thức, sinh flashcard tự
+              động và ôn tập tối ưu với SM-2.
             </p>
             <div className="flex gap-4 justify-center flex-wrap">
               <Button size="lg" className="text-lg px-8">
@@ -134,41 +140,40 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Chrome Extension Section */}
+      {/* Lesson Builder Section */}
       <section className="py-20 px-4 bg-muted/50">
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <Badge className="mb-4">Chrome Extension</Badge>
+              <Badge className="mb-4">Lesson & Flashcards</Badge>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Learn Anywhere, Anytime
+                Nhập nội dung, AI lo phần còn lại
               </h2>
               <p className="text-muted-foreground mb-6">
-                Our Chrome extension lets you create flashcards from any webpage
-                instantly. Select text, click, and let AI do the rest.
+                Nhập chủ đề, dán tài liệu và (tuỳ chọn) link nguồn. AI sẽ phân
+                tích, sinh Lesson và bộ Flashcards, rồi đưa vào SRS.
               </p>
               <ul className="space-y-3 mb-6">
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
-                  <span>One-click card creation</span>
+                  <span>Không cần cài extension</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
-                  <span>Works on any website</span>
+                  <span>Hỗ trợ dán text hoặc link</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
-                  <span>Sync across devices</span>
+                  <span>Auto đưa vào SRS để ôn tập</span>
                 </li>
               </ul>
-              <Button size="lg">
-                <Chrome className="mr-2 h-5 w-5" />
-                Install Extension
+              <Button size="lg" onClick={() => window.open("/lesson", "_self")}>
+                Mở Lesson Builder
               </Button>
             </div>
             <div className="bg-background rounded-lg shadow-xl p-6 border">
               <div className="aspect-video bg-muted rounded flex items-center justify-center">
-                <Chrome className="h-24 w-24 text-muted-foreground/50" />
+                <BookOpen className="h-24 w-24 text-muted-foreground/50" />
               </div>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -7,41 +8,96 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Flame, TrendingUp, Award, Clock } from "lucide-react";
+import {
+  Calendar,
+  Flame,
+  TrendingUp,
+  Award,
+  Zap,
+  Target,
+  Loader2,
+} from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
 import { analyticsService } from "@/services/analytics.service";
-import type { LearningOverview } from "@/types/api";
+import { deckService } from "@/services/deck.service";
+import type { LearningOverview, Deck } from "@/types/api";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 export default function HeatmapPage() {
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [heatmapData, setHeatmapData] = useState<{ [key: string]: number }>({});
   const [overview, setOverview] = useState<LearningOverview | null>(null);
+  const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [streak, setStreak] = useState(0);
+  const [avgDaily, setAvgDaily] = useState(0);
 
   useEffect(() => {
     if (isAuthenticated) {
       loadAnalytics();
+    } else {
+      navigate("/login");
     }
   }, [isAuthenticated]);
 
   const loadAnalytics = async () => {
     try {
+      setLoading(true);
       const overviewData = await analyticsService.getOverview();
       setOverview(overviewData);
+
+      // Load decks for deck-by-deck stats
+      const decksData = await deckService.getAll({ limit: 100 });
+      setDecks(decksData.items);
 
       const heatmapMap: { [key: string]: number } = {};
       overviewData.recentActivity.forEach((item) => {
         heatmapMap[item.date] = item.reviewed;
       });
       setHeatmapData(heatmapMap);
+
+      // Calculate streak
+      calculateStreak(overviewData);
+
+      // Calculate average daily cards
+      const totalReviewed = overviewData.recentActivity.reduce(
+        (sum, item) => sum + item.reviewed,
+        0
+      );
+      const avgCards =
+        overviewData.recentActivity.length > 0
+          ? Math.round(totalReviewed / overviewData.recentActivity.length)
+          : 0;
+      setAvgDaily(avgCards);
     } catch (error: any) {
       toast.error(error.message || "Failed to load analytics");
     } finally {
       setLoading(false);
     }
+  };
+
+  const calculateStreak = (data: LearningOverview) => {
+    let currentStreak = 0;
+    const today = new Date();
+
+    for (let i = 0; i < 365; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split("T")[0];
+
+      const activity = data.recentActivity.find((a) => a.date === dateStr);
+      if (activity && activity.reviewed > 0) {
+        currentStreak++;
+      } else {
+        break;
+      }
+    }
+
+    setStreak(currentStreak);
   };
 
   const getActivityColor = (level: number) => {
@@ -112,6 +168,7 @@ export default function HeatmapPage() {
         <h1 className="text-2xl font-bold mb-4">
           Please login to view your statistics
         </h1>
+        <Button onClick={() => navigate("/login")}>Go to Login</Button>
       </div>
     );
   }
@@ -119,10 +176,24 @@ export default function HeatmapPage() {
   if (loading || !overview) {
     return (
       <div className="container mx-auto py-12 text-center">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
         <p>Loading statistics...</p>
       </div>
     );
   }
+
+  const masteryPercentage =
+    overview.totalCards > 0
+      ? Math.round((overview.masteredCards / overview.totalCards) * 100)
+      : 0;
+  const learningPercentage =
+    overview.totalCards > 0
+      ? Math.round((overview.learningCards / overview.totalCards) * 100)
+      : 0;
+  const newPercentage =
+    overview.totalCards > 0
+      ? Math.round((overview.newCards / overview.totalCards) * 100)
+      : 0;
 
   return (
     <div className="container mx-auto max-w-7xl py-12 px-4">
@@ -171,7 +242,40 @@ export default function HeatmapPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{overview.masteredCards}</div>
-            <p className="text-xs text-muted-foreground">cards</p>
+            <p className="text-xs text-muted-foreground">
+              {masteryPercentage}% of cards
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">Daily Avg</CardTitle>
+              <Zap className="h-4 w-4 text-purple-500" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{avgDaily}</div>
+            <p className="text-xs text-muted-foreground">cards/day</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Performance Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">
+                Study Streak
+              </CardTitle>
+              <Flame className="h-4 w-4 text-red-500" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{streak}</div>
+            <p className="text-xs text-muted-foreground">consecutive days</p>
           </CardContent>
         </Card>
 
@@ -179,23 +283,72 @@ export default function HeatmapPage() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium">Total Decks</CardTitle>
-              <Clock className="h-4 w-4 text-purple-500" />
+              <Target className="h-4 w-4 text-green-500" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{overview.totalDecks}</div>
-            <p className="text-xs text-muted-foreground">decks</p>
+            <p className="text-xs text-muted-foreground">active decks</p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Card Status Breakdown */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Card Status Breakdown</CardTitle>
+          <CardDescription>
+            Distribution of your cards by learning status
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span>Mastered</span>
+              <span className="font-medium">
+                {overview.masteredCards} ({masteryPercentage}%)
+              </span>
+            </div>
+            <Progress value={masteryPercentage} className="h-2 bg-green-100" />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span>Learning</span>
+              <span className="font-medium">
+                {overview.learningCards} ({learningPercentage}%)
+              </span>
+            </div>
+            <Progress
+              value={learningPercentage}
+              className="h-2 bg-yellow-100"
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span>New</span>
+              <span className="font-medium">
+                {overview.newCards} ({newPercentage}%)
+              </span>
+            </div>
+            <Progress value={newPercentage} className="h-2 bg-blue-100" />
+          </div>
+        </CardContent>
+      </Card>
+
       <Tabs defaultValue="heatmap" className="space-y-6">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="heatmap">
             <Calendar className="h-4 w-4 mr-2" />
             Heatmap
           </TabsTrigger>
-          <TabsTrigger value="weekly">Recent Activity</TabsTrigger>
+          <TabsTrigger value="weekly">
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Recent Activity
+          </TabsTrigger>
+          <TabsTrigger value="decks">
+            <Award className="h-4 w-4 mr-2" />
+            Decks
+          </TabsTrigger>
         </TabsList>
 
         {/* Heatmap Tab */}
@@ -292,26 +445,34 @@ export default function HeatmapPage() {
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
               <CardDescription>
-                Your learning activity over the past week
+                Your learning activity over the past 30 days
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {overview.recentActivity.slice(0, 7).map((activity) => (
+                {overview.recentActivity.slice(0, 30).map((activity) => (
                   <div key={activity.date} className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium w-32">
-                        {new Date(activity.date).toLocaleDateString()}
+                      <span className="font-medium w-40">
+                        {new Date(activity.date).toLocaleDateString("en-US", {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                        })}
                       </span>
                       <div className="flex-1 mx-4">
                         <Progress
-                          value={(activity.reviewed / 60) * 100}
+                          value={
+                            (activity.reviewed /
+                              Math.max(overview.dueCards, 60)) *
+                            100
+                          }
                           className="h-2"
                         />
                       </div>
-                      <span className="text-muted-foreground text-right">
-                        {activity.reviewed} reviewed • {activity.mastered}{" "}
-                        mastered
+                      <span className="text-muted-foreground text-right text-xs w-32">
+                        {activity.reviewed} reviewed
+                        {activity.mastered > 0 && ` • ${activity.mastered} ✓`}
                       </span>
                     </div>
                   </div>
@@ -320,6 +481,76 @@ export default function HeatmapPage() {
                   <p className="text-sm text-muted-foreground text-center py-4">
                     No recent activity. Start studying to see your progress
                     here!
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Decks Tab */}
+        <TabsContent value="decks" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Decks Performance</CardTitle>
+              <CardDescription>
+                Statistics for each of your flashcard decks
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {decks.length > 0 ? (
+                  decks.map((deck) => (
+                    <div
+                      key={deck.id}
+                      className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h3 className="font-medium">{deck.title}</h3>
+                          {deck.description && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {deck.description}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigate(`/review?deckId=${deck.id}`)}
+                        >
+                          Review
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">Cards</p>
+                          <p className="font-medium">{deck.cardCount || 0}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Due</p>
+                          <p className="font-medium text-orange-600">
+                            {deck.dueCardCount || 0}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Public</p>
+                          <p className="font-medium">
+                            {deck.isPublic ? "Yes" : "No"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Created</p>
+                          <p className="font-medium text-xs">
+                            {new Date(deck.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No decks yet. Create one to start learning!
                   </p>
                 )}
               </div>

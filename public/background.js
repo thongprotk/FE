@@ -75,7 +75,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 })
 
 // Simulate AI flashcard generation
-async function simulateAIGeneration(text: string) {
+async function simulateAIGeneration(text) {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 1500))
 
