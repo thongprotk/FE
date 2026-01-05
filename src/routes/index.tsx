@@ -8,6 +8,7 @@ import HeatmapPage from "@/pages/HeatmapPage";
 import LessonBuilderPage from "@/pages/LessonBuilder";
 import LoginPage from "@/pages/LoginPage";
 import DecksPage from "@/pages/DecksPage";
+import PrivateRoute from "@/components/PrivateRoute";
 
 const router = createBrowserRouter([
   {
@@ -28,19 +29,35 @@ const router = createBrowserRouter([
       },
       {
         path: "decks",
-        element: <DecksPage />,
+        element: (
+          <PrivateRoute>
+            <DecksPage />
+          </PrivateRoute>
+        ),
       },
       {
         path: "review",
-        element: <ReviewMode />,
+        element: (
+          <PrivateRoute>
+            <ReviewMode />
+          </PrivateRoute>
+        ),
       },
       {
         path: "heatmap",
-        element: <HeatmapPage />,
+        element: (
+          <PrivateRoute>
+            <HeatmapPage />
+          </PrivateRoute>
+        ),
       },
       {
         path: "lesson",
-        element: <LessonBuilderPage />,
+        element: (
+          <PrivateRoute>
+            <LessonBuilderPage />
+          </PrivateRoute>
+        ),
       },
     ],
   },

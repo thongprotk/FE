@@ -129,18 +129,22 @@ export interface ActivityHeatmap {
 // Resource Types
 export interface Resource {
     id: string;
-    title: string;
-    url: string;
-    content: string;
-    userId: string;
+    title: string | null;
+    url: string | null;
+    content: string | null;
+    aiSummary: string | null;
+    aiStatus: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | null;
+    isProcessing: boolean;
     createdAt: string;
     updatedAt: string;
 }
 
 export interface CreateResourceDto {
     title: string;
-    url: string;
+    url?: string;
     content: string;
+    aiSummary?: string;
+    aiRequested?: boolean; // Request AI processing after creating resource
 }
 
 // Error Types
