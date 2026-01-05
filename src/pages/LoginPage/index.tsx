@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
@@ -14,8 +14,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-
 export default function LoginPage() {
   const { login, register } = useAuth();
   const navigate = useNavigate();
@@ -26,6 +26,7 @@ export default function LoginPage() {
   const loginSchema = z.object({
     username: z.string().min(1, "Please enter username or email"),
     password: z.string().min(6, "Password must be at least 6 characters"),
+    rememberMe: z.boolean().optional(),
   });
 
   type LoginForm = z.infer<typeof loginSchema>;
@@ -33,10 +34,11 @@ export default function LoginPage() {
   const {
     register: formRegister,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { username: "", password: "" },
+    defaultValues: { username: "", password: "", rememberMe: false },
   });
 
   const [registerData, setRegisterData] = useState({
@@ -46,6 +48,7 @@ export default function LoginPage() {
     lastName: "",
     password: "",
     confirmPassword: "",
+    rememberMe: false,
   });
 
   const onLoginSubmit = async (values: LoginForm) => {
@@ -85,11 +88,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>{isLogin ? "Login" : "Register"}</CardTitle>
-          <CardDescription>
+    <div className="min-h-screen flex items-center justify-center">
+      <Card className="w-full max-w-md mx-4">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-center">
+            {isLogin ? "Welcome Back" : "Register"}
+          </CardTitle>
+          <CardDescription className="text-center">
             {isLogin
               ? "Enter your credentials to access your account"
               : "Create a new account to get started"}
@@ -98,7 +103,7 @@ export default function LoginPage() {
         <CardContent>
           {isLogin ? (
             <form onSubmit={handleSubmit(onLoginSubmit)} className="space-y-4">
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="username">Username or Email</Label>
                 <Input
                   id="username"
@@ -111,7 +116,7 @@ export default function LoginPage() {
                   </p>
                 )}
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
@@ -124,13 +129,38 @@ export default function LoginPage() {
                   </p>
                 )}
               </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Controller
+                    name="rememberMe"
+                    control={control}
+                    render={({ field }) => (
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    )}
+                  />
+                  <Label htmlFor="rememberMe">Remember Me</Label>
+                </div>
+                <Button
+                  variant="link"
+                  className="text-blue-600 hover:text-blue-800 transition-colors duration-200 cursor-pointer"
+                  type="button"
+                  onClick={() =>
+                    toast.info("Forgot Password flow not implemented yet.")
+                  }
+                >
+                  Forgot Password?
+                </Button>
+              </div>
               <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Logging in..." : "Login"}
+                {isSubmitting ? "Signing in..." : "Sign In"}
               </Button>
             </form>
           ) : (
             <form onSubmit={handleRegister} className="space-y-4">
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="reg-username">Username</Label>
                 <Input
                   id="reg-username"
@@ -145,7 +175,7 @@ export default function LoginPage() {
                   required
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="reg-email">Email</Label>
                 <Input
                   id="reg-email"
@@ -158,7 +188,7 @@ export default function LoginPage() {
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
                   <Input
                     id="firstName"
@@ -173,7 +203,7 @@ export default function LoginPage() {
                     required
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="lastName">Last Name</Label>
                   <Input
                     id="lastName"
@@ -189,7 +219,7 @@ export default function LoginPage() {
                   />
                 </div>
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="reg-password">Password</Label>
                 <Input
                   id="reg-password"
@@ -204,7 +234,7 @@ export default function LoginPage() {
                   required
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirm Password</Label>
                 <Input
                   id="confirm-password"
@@ -224,16 +254,15 @@ export default function LoginPage() {
               </Button>
             </form>
           )}
-
-          <div className="mt-4 text-center">
+          <div className="mt-4 text-center text-sm text-slate-600">
+            {isLogin ? "Don't have an account?" : "Already have an account?"}
             <Button
               variant="link"
               onClick={() => setIsLogin(!isLogin)}
               type="button"
+              className="text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
             >
-              {isLogin
-                ? "Don't have an account? Register"
-                : "Already have an account? Login"}
+              {isLogin ? "Register" : " Login"}
             </Button>
           </div>
         </CardContent>
