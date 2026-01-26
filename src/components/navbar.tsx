@@ -1,13 +1,11 @@
 import { useMemo, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogIn, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const links = [
-  { label: "Home", to: "/" },
   { label: "Decks", to: "/decks" },
-  { label: "Review", to: "/review" },
   { label: "Heatmap", to: "/heatmap" },
   { label: "Lesson", to: "/lesson" },
 ];
@@ -46,13 +44,9 @@ export default function Navbar() {
   return (
     <nav className="border-b bg-background/80 backdrop-blur">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <button
-          onClick={() => navigate("/")}
-          className="text-lg md:text-xl font-bold tracking-tight hover:text-primary transition-colors"
-        >
+        <Link to="/" className="text-lg md:text-xl font-bold tracking-tight">
           {brand}
-        </button>
-
+        </Link>
         <div className="hidden md:flex items-center gap-6">
           {renderLinks("flex items-center gap-2")}
         </div>

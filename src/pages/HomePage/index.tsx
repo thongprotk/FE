@@ -98,7 +98,6 @@ export default function HomePage() {
 
   return (
     <div className="w-full">
-      {/* Hero Section */}
       <section className="container mx-auto max-w-6xl py-20 px-4 text-center">
         <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           Personalized Learning System (SRS + GenAI)
@@ -158,7 +157,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Demo Pages */}
       <section className="container mx-auto max-w-6xl py-16 px-4">
         <h2 className="text-3xl font-bold text-center mb-12">
           Explore Features
@@ -209,10 +207,10 @@ export default function HomePage() {
                     {page.title === "My Decks"
                       ? "Manage Decks →"
                       : page.title === "Review Cards"
-                      ? "Start Review →"
-                      : page.title === "Learning Statistics"
-                      ? "View Analytics →"
-                      : "View Demo →"}
+                        ? "Start Review →"
+                        : page.title === "Learning Statistics"
+                          ? "View Analytics →"
+                          : "View Demo →"}
                   </Button>
                 </CardContent>
               </Card>
@@ -221,7 +219,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Call to Action */}
       <section className="container mx-auto max-w-4xl py-16 px-4 text-center">
         <h2 className="text-3xl font-bold mb-6">Ready to Start Learning?</h2>
         <p className="text-lg text-muted-foreground mb-8">

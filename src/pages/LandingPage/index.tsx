@@ -7,16 +7,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Brain,
-  Zap,
-  Chrome,
-  BarChart3,
-  CheckCircle,
-  BookOpen,
-} from "lucide-react";
-
+import { Brain, Zap, BarChart3, CheckCircle, BookOpen } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 export default function LandingPage() {
+  const navigate = useNavigate();
+  const handClickLogin = () => {
+    navigate("/login");
+  };
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -33,15 +30,13 @@ export default function LandingPage() {
               Nền tảng học tập cá nhân hóa: thu thập tri thức, sinh flashcard tự
               động và ôn tập tối ưu với SM-2.
             </p>
-            <div className="flex gap-4 justify-center flex-wrap">
-              <Button size="lg" className="text-lg px-8">
-                Get Started Free
-              </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8">
-                <Chrome className="mr-2 h-5 w-5" />
-                Add to Chrome
-              </Button>
-            </div>
+            <Button
+              size="lg"
+              className="text-lg px-8 cursor-pointer"
+              onClick={handClickLogin}
+            >
+              Get Started Free
+            </Button>
           </div>
         </div>
       </section>
@@ -167,7 +162,11 @@ export default function LandingPage() {
                   <span>Auto đưa vào SRS để ôn tập</span>
                 </li>
               </ul>
-              <Button size="lg" onClick={() => window.open("/lesson", "_self")}>
+              <Button
+                className="cursor-pointer"
+                size="lg"
+                onClick={() => navigate("/lesson")}
+              >
                 Mở Lesson Builder
               </Button>
             </div>
@@ -175,32 +174,6 @@ export default function LandingPage() {
               <div className="aspect-video bg-muted rounded flex items-center justify-center">
                 <BookOpen className="h-24 w-24 text-muted-foreground/50" />
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
-                100K+
-              </div>
-              <div className="text-muted-foreground">Active Users</div>
-            </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
-                5M+
-              </div>
-              <div className="text-muted-foreground">Cards Created</div>
-            </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
-                95%
-              </div>
-              <div className="text-muted-foreground">Success Rate</div>
             </div>
           </div>
         </div>
@@ -217,13 +190,18 @@ export default function LandingPage() {
             platform
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <Button size="lg" variant="secondary" className="text-lg px-8">
+            <Button
+              size="lg"
+              variant="secondary"
+              className="text-lg px-8 cursor-pointer"
+              onClick={handClickLogin}
+            >
               Start Free Trial
             </Button>
             <Button
               size="lg"
               variant="outline"
-              className="text-lg px-8 bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10"
+              className="text-lg px-8 bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10 cursor-pointer"
             >
               View Demo
             </Button>

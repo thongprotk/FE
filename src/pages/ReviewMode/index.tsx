@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { formatAnswer, cleanAIResponse } from "@/utils/format-answer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,7 +64,7 @@ export default function ReviewMode() {
           (card) =>
             card.status === "NEW" ||
             card.status === "LEARNING" ||
-            card.status === "RELEARNING"
+            card.status === "RELEARNING",
         );
         setCards(dueCards);
       } else {
@@ -83,10 +84,10 @@ export default function ReviewMode() {
   const progress =
     (Object.keys(reviewedCards).length / Math.max(cards.length, 1)) * 100;
   const acceptedCount = Object.values(reviewedCards).filter(
-    (v) => v === "accepted" || v === "edited"
+    (v) => v === "accepted" || v === "edited",
   ).length;
   const rejectedCount = Object.values(reviewedCards).filter(
-    (v) => v === "rejected"
+    (v) => v === "rejected",
   ).length;
 
   const handleEdit = () => {
@@ -117,8 +118,8 @@ export default function ReviewMode() {
                 backContent: editedBack,
                 note: editedNote,
               }
-            : c
-        )
+            : c,
+        ),
       );
       setIsEditing(false);
       toast.success("Card updated successfully");
@@ -352,7 +353,7 @@ export default function ReviewMode() {
                 <Textarea
                   value={editedFront}
                   onChange={(e) => setEditedFront(e.target.value)}
-                  className="min-h-[100px]"
+                  className="min-h-25"
                   disabled={saving}
                 />
               </div>
@@ -361,9 +362,47 @@ export default function ReviewMode() {
                 <Textarea
                   value={editedBack}
                   onChange={(e) => setEditedBack(e.target.value)}
-                  className="min-h-[120px]"
+                  className="min-h-30"
                   disabled={saving}
+                  placeholder="Enter answer (use • for bullets, numbered lists for steps)"
                 />
+                {editedBack && (
+                  <div className="mt-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                    <p className="text-xs font-medium text-green-700 mb-2">
+                      Preview:
+                    </p>
+                    <div className="space-y-1 text-sm">
+                      {formatAnswer(cleanAIResponse(editedBack)).map(
+                        (line, idx) => (
+                          <div key={idx}>
+                            {line.type === "bullet" && (
+                              <div className="flex items-start gap-2">
+                                <span className="text-green-600 font-bold">
+                                  •
+                                </span>
+                                <span>{line.content}</span>
+                              </div>
+                            )}
+                            {line.type === "number" && (
+                              <div className="flex items-start gap-2">
+                                <span className="text-green-600 font-bold">
+                                  →
+                                </span>
+                                <span>{line.content}</span>
+                              </div>
+                            )}
+                            {line.type === "heading" && (
+                              <p className="font-semibold text-green-700">
+                                {line.content}
+                              </p>
+                            )}
+                            {line.type === "text" && <p>{line.content}</p>}
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium mb-2 block">
@@ -372,7 +411,7 @@ export default function ReviewMode() {
                 <Textarea
                   value={editedNote}
                   onChange={(e) => setEditedNote(e.target.value)}
-                  className="min-h-[60px]"
+                  className="min-h-15"
                   placeholder="Add notes or additional context..."
                   disabled={saving}
                 />
@@ -393,7 +432,7 @@ export default function ReviewMode() {
             </div>
           ) : (
             <div
-              className="min-h-[300px] flex flex-col items-center justify-center cursor-pointer p-8 rounded-lg border border-dashed"
+              className="min-h-75 flex flex-col items-center justify-center cursor-pointer p-8 rounded-lg border border-dashed"
               onClick={() => !saving && setIsFlipped(!isFlipped)}
             >
               {!isFlipped ? (
@@ -413,7 +452,40 @@ export default function ReviewMode() {
                   <p className="text-sm text-muted-foreground uppercase tracking-wide">
                     Answer
                   </p>
-                  <p className="text-xl">{currentCard.backContent}</p>
+                  <div className="bg-linear-to-r from-green-50 to-transparent p-4 rounded-lg border border-green-100 text-left">
+                    <div className="space-y-2">
+                      {formatAnswer(
+                        cleanAIResponse(currentCard.backContent),
+                      ).map((line, idx) => (
+                        <div key={idx}>
+                          {line.type === "bullet" && (
+                            <div className="flex items-start gap-2">
+                              <span className="text-green-600 font-bold text-sm mt-0.5">
+                                •
+                              </span>
+                              <span className="text-sm">{line.content}</span>
+                            </div>
+                          )}
+                          {line.type === "number" && (
+                            <div className="flex items-start gap-2">
+                              <span className="text-green-600 font-bold text-sm">
+                                →
+                              </span>
+                              <span className="text-sm">{line.content}</span>
+                            </div>
+                          )}
+                          {line.type === "heading" && (
+                            <p className="font-semibold text-sm text-green-700 mt-2">
+                              {line.content}
+                            </p>
+                          )}
+                          {line.type === "text" && (
+                            <p className="text-sm">{line.content}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                   {currentCard.note && (
                     <div className="pt-4 border-t">
                       <p className="text-xs text-muted-foreground mb-2">
