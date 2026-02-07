@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Zap, BarChart3, CheckCircle, BookOpen } from "lucide-react";
+import { Brain, Zap, BarChart3, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -131,50 +131,6 @@ export default function LandingPage() {
                 </ul>
               </CardContent>
             </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Lesson Builder Section */}
-      <section className="py-20 px-4 bg-muted/50">
-        <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <Badge className="mb-4">Lesson & Flashcards</Badge>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Nhập nội dung, AI lo phần còn lại
-              </h2>
-              <p className="text-muted-foreground mb-6">
-                Nhập chủ đề, dán tài liệu và (tuỳ chọn) link nguồn. AI sẽ phân
-                tích, sinh Lesson và bộ Flashcards, rồi đưa vào SRS.
-              </p>
-              <ul className="space-y-3 mb-6">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
-                  <span>Không cần cài extension</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
-                  <span>Hỗ trợ dán text hoặc link</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
-                  <span>Auto đưa vào SRS để ôn tập</span>
-                </li>
-              </ul>
-              <Button
-                className="cursor-pointer"
-                size="lg"
-                onClick={() => navigate("/lesson")}
-              >
-                Mở Lesson Builder
-              </Button>
-            </div>
-            <div className="bg-background rounded-lg shadow-xl p-6 border">
-              <div className="aspect-video bg-muted rounded flex items-center justify-center">
-                <BookOpen className="h-24 w-24 text-muted-foreground/50" />
-              </div>
-            </div>
           </div>
         </div>
       </section>

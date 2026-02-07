@@ -61,6 +61,8 @@ export default function DecksPage() {
   const [newDeckData, setNewDeckData] = useState<CreateDeckDto>({
     title: "",
     description: "",
+    content: "",
+    cardCount: 10,
     isPublic: false,
   });
   const [editDeckData, setEditDeckData] = useState<CreateDeckDto>({});
@@ -110,12 +112,34 @@ export default function DecksPage() {
         return;
       }
 
+      // Validate content if provided
+      if (newDeckData.content && newDeckData.content.trim()) {
+        const contentLength = newDeckData.content.trim().length;
+        if (contentLength < 100) {
+          toast.error(
+            `Content is too short for AI generation. Need at least 100 characters (current: ${contentLength})`,
+          );
+          return;
+        }
+      }
+
       setSavingDeck(true);
       const createdDeck = await deckService.create(newDeckData);
       setDecks([createdDeck, ...decks]);
-      setNewDeckData({ title: "", description: "", isPublic: false });
+      setNewDeckData({
+        title: "",
+        description: "",
+        content: "",
+        cardCount: 10,
+        isPublic: false,
+      });
       setIsCreateDialogOpen(false);
-      toast.success("Deck created successfully!");
+
+      if (newDeckData.content && newDeckData.content.trim().length >= 100) {
+        toast.success("Deck created! AI is generating flashcards...");
+      } else {
+        toast.success("Deck created successfully!");
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to create deck");
     } finally {
@@ -267,6 +291,55 @@ export default function DecksPage() {
                   className="w-full max-w-full break-all resize-y min-h-25"
                 />
               </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">
+                  Content (Optional - AI will auto-generate flashcards)
+                </label>
+                <Textarea
+                  placeholder="Paste content here to auto-generate flashcards (min 100 characters)..."
+                  value={newDeckData.content || ""}
+                  onChange={(e) =>
+                    setNewDeckData({
+                      ...newDeckData,
+                      content: e.target.value,
+                    })
+                  }
+                  disabled={savingDeck}
+                  className="w-full max-w-full break-all resize-y min-h-32"
+                />
+                {newDeckData.content && newDeckData.content.length < 100 && (
+                  <p className="text-sm text-orange-500 mt-1">
+                    ⚠️ Need at least 100 characters for AI generation (
+                    {newDeckData.content.length}/100)
+                  </p>
+                )}
+                {newDeckData.content && newDeckData.content.length >= 100 && (
+                  <p className="text-sm text-green-600 mt-1">
+                    ✓ Ready to generate {newDeckData.cardCount || 10} flashcards
+                  </p>
+                )}
+              </div>
+              {newDeckData.content && newDeckData.content.length >= 100 && (
+                <div>
+                  <label className="text-sm font-medium mb-1 block">
+                    Number of Cards to Generate (3-20)
+                  </label>
+                  <Input
+                    type="number"
+                    min="3"
+                    max="20"
+                    placeholder="10"
+                    value={newDeckData.cardCount || 10}
+                    onChange={(e) =>
+                      setNewDeckData({
+                        ...newDeckData,
+                        cardCount: parseInt(e.target.value) || 10,
+                      })
+                    }
+                    disabled={savingDeck}
+                  />
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -296,6 +369,8 @@ export default function DecksPage() {
                   setNewDeckData({
                     title: "",
                     description: "",
+                    content: "",
+                    cardCount: 10,
                     isPublic: false,
                   });
                 }}
@@ -303,7 +378,16 @@ export default function DecksPage() {
               >
                 Cancel
               </Button>
-              <Button onClick={handleCreateDeck} disabled={savingDeck}>
+              <Button
+                onClick={handleCreateDeck}
+                disabled={
+                  savingDeck ||
+                  !newDeckData?.title?.trim() ||
+                  (newDeckData.content &&
+                    newDeckData.content.trim() &&
+                    newDeckData.content.trim().length < 100)
+                }
+              >
                 {savingDeck && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}

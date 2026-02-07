@@ -60,6 +60,8 @@ export interface Deck {
 export interface CreateDeckDto {
   title?: string;
   description?: string;
+  content?: string;
+  cardCount?: number;
   isPublic?: boolean;
 }
 

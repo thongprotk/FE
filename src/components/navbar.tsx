@@ -7,7 +7,6 @@ import { useAuth } from "@/contexts/AuthContext";
 const links = [
   { label: "Decks", to: "/decks" },
   { label: "Heatmap", to: "/heatmap" },
-  { label: "Lesson", to: "/lesson" },
 ];
 
 export default function Navbar() {

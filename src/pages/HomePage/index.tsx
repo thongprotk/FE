@@ -15,7 +15,6 @@ import {
   Shield,
   RefreshCw,
   BarChart3,
-  Smartphone,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -81,12 +80,6 @@ export default function HomePage() {
       title: "Secure Auth",
       description: "JWT-based authentication with Google OAuth support",
       color: "text-red-600",
-    },
-    {
-      icon: Smartphone,
-      title: "Lesson Builder",
-      description: "Nhập chủ đề + tài liệu, AI sinh Lesson & Flashcards",
-      color: "text-purple-600",
     },
     {
       icon: Flame,
