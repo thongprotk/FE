@@ -85,7 +85,7 @@ export const ReviewControls = ({
           ) : (
             <CheckCircle className="mr-2 h-5 w-5" />
           )}
-          Accept
+          Accept Review
         </Button>
       </div>
     </>

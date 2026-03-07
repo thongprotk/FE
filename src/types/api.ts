@@ -108,7 +108,7 @@ export interface UpdateCardDto {
 }
 
 export interface ReviewCardDto {
-  quality: number; // 0-5 for SM-2 algorithm
+  grade: number; // 0-5 for SM-2 algorithm
 }
 
 // Analytics Types
@@ -161,3 +161,10 @@ export interface ApiError {
   error?: string;
   statusCode: number;
 }
+
+// Quiz Types
+export interface QuizItem {
+  card: Card;
+  options: string[];
+}
+

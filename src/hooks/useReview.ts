@@ -1,16 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { cardService } from "@/services/card.service";
 import { deckService } from "@/services/deck.service";
 import type { Card as CardType, Deck } from "@/types/api";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { CARDS_REVIEWED_EVENT } from "@/hooks/useDueCards";
 
 export const useReview = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { isAuthenticated } = useAuth();
   const deckId = searchParams.get("deckId");
+  const isMounted = useRef(true);
 
   const [cards, setCards] = useState<CardType[]>([]);
   const [deck, setDeck] = useState<Deck | null>(null);
@@ -34,8 +36,11 @@ export const useReview = () => {
         const deckData = await deckService.getById(deckId);
         setDeck(deckData);
 
-        const dueCards = await cardService.getDueCards(deckId);
-        setCards(dueCards);
+        const dueCardsResponse = await cardService.getAll(deckId, {
+          limit: 100,
+          dueOnly: true,
+        });
+        setCards(dueCardsResponse.items || []);
       } else {
         toast.error("No deck selected");
         navigate("/decks");
@@ -47,6 +52,13 @@ export const useReview = () => {
       setLoading(false);
     }
   }, [deckId, navigate]);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -105,7 +117,7 @@ export const useReview = () => {
     } catch (error: any) {
       toast.error(error.message || "Failed to update card");
     } finally {
-      setSaving(false);
+      if (isMounted.current) setSaving(false);
     }
   };
 
@@ -114,15 +126,16 @@ export const useReview = () => {
       setSaving(true);
       if (!deckId || !currentCard) return;
 
-      await cardService.review(deckId, currentCard.id, { quality: 5 });
+      await cardService.review(deckId, currentCard.id, { grade: 5 });
 
+      window.dispatchEvent(new Event(CARDS_REVIEWED_EVENT));
       setReviewedCards((prev) => ({ ...prev, [currentCard.id]: "accepted" }));
       toast.success("Card accepted");
       nextCard();
     } catch (error: any) {
       toast.error(error.message || "Failed to accept card");
     } finally {
-      setSaving(false);
+      if (isMounted.current) setSaving(false);
     }
   };
 
@@ -131,15 +144,16 @@ export const useReview = () => {
       setSaving(true);
       if (!deckId || !currentCard) return;
 
-      await cardService.review(deckId, currentCard.id, { quality: 0 });
+      await cardService.review(deckId, currentCard.id, { grade: 0 });
 
+      window.dispatchEvent(new Event(CARDS_REVIEWED_EVENT));
       setReviewedCards((prev) => ({ ...prev, [currentCard.id]: "rejected" }));
       toast.success("Card rejected");
       nextCard();
     } catch (error: any) {
       toast.error(error.message || "Failed to reject card");
     } finally {
-      setSaving(false);
+      if (isMounted.current) setSaving(false);
     }
   };
 

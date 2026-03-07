@@ -55,13 +55,15 @@ export const Flashcard = ({
         return "bg-gray-500";
     }
   };
-  
+
   return (
     <Card className="mb-6">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Badge variant="outline"  className={getStatusColor(card.status)}>{card.status}</Badge>
+            <Badge variant="outline" className={getStatusColor(card.status)}>
+              {card.status}
+            </Badge>
             <Badge variant="secondary" className="text-xs">
               Interval: {card.interval} days
             </Badge>
@@ -85,9 +87,7 @@ export const Flashcard = ({
         {isEditing ? (
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">
-                Question
-              </label>
+              <label className="text-sm font-medium mb-2 block">Question</label>
               <Textarea
                 value={editedFront}
                 onChange={(e) => setEditedFront(e.target.value)}
@@ -98,7 +98,7 @@ export const Flashcard = ({
             <div>
               <label className="text-sm font-medium mb-2 block">Answer</label>
               <Textarea
-                value={editedBack}
+                value={cleanAIResponse(editedBack)}
                 onChange={(e) => setEditedBack(e.target.value)}
                 className="min-h-30"
                 disabled={saving}
@@ -159,11 +159,7 @@ export const Flashcard = ({
                 {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save & Accept
               </Button>
-              <Button
-                variant="outline"
-                onClick={onCancel}
-                disabled={saving}
-              >
+              <Button variant="outline" onClick={onCancel} disabled={saving}>
                 Cancel
               </Button>
             </div>
@@ -178,9 +174,7 @@ export const Flashcard = ({
                 <p className="text-sm text-muted-foreground uppercase tracking-wide">
                   Question
                 </p>
-                <h2 className="text-2xl font-semibold">
-                  {card.frontContent}
-                </h2>
+                <h2 className="text-2xl font-semibold">{card.frontContent}</h2>
                 <p className="text-sm text-muted-foreground">
                   Click to reveal answer
                 </p>
@@ -192,46 +186,42 @@ export const Flashcard = ({
                 </p>
                 <div className="bg-linear-to-r from-green-50 to-transparent p-4 rounded-lg border border-green-100 text-left">
                   <div className="space-y-2">
-                    {formatAnswer(
-                      cleanAIResponse(card.backContent),
-                    ).map((line, idx) => (
-                      <div key={idx}>
-                        {line.type === "bullet" && (
-                          <div className="flex items-start gap-2">
-                            <span className="text-green-600 font-bold text-sm mt-0.5">
-                              •
-                            </span>
-                            <span className="text-sm">{line.content}</span>
-                          </div>
-                        )}
-                        {line.type === "number" && (
-                          <div className="flex items-start gap-2">
-                            <span className="text-green-600 font-bold text-sm">
-                              →
-                            </span>
-                            <span className="text-sm">{line.content}</span>
-                          </div>
-                        )}
-                        {line.type === "heading" && (
-                          <p className="font-semibold text-sm text-green-700 mt-2">
-                            {line.content}
-                          </p>
-                        )}
-                        {line.type === "text" && (
-                          <p className="text-sm">{line.content}</p>
-                        )}
-                      </div>
-                    ))}
+                    {formatAnswer(cleanAIResponse(card.backContent)).map(
+                      (line, idx) => (
+                        <div key={idx}>
+                          {line.type === "bullet" && (
+                            <div className="flex items-start gap-2">
+                              <span className="text-green-600 font-bold text-sm mt-0.5">
+                                •
+                              </span>
+                              <span className="text-sm">{line.content}</span>
+                            </div>
+                          )}
+                          {line.type === "number" && (
+                            <div className="flex items-start gap-2">
+                              <span className="text-green-600 font-bold text-sm">
+                                →
+                              </span>
+                              <span className="text-sm">{line.content}</span>
+                            </div>
+                          )}
+                          {line.type === "heading" && (
+                            <p className="font-semibold text-sm text-green-700 mt-2">
+                              {line.content}
+                            </p>
+                          )}
+                          {line.type === "text" && (
+                            <p className="text-sm">{line.content}</p>
+                          )}
+                        </div>
+                      ),
+                    )}
                   </div>
                 </div>
                 {card.note && (
                   <div className="pt-4 border-t">
-                    <p className="text-xs text-muted-foreground mb-2">
-                      Note:
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {card.note}
-                    </p>
+                    <p className="text-xs text-muted-foreground mb-2">Note:</p>
+                    <p className="text-sm text-gray-600">{card.note}</p>
                   </div>
                 )}
                 <p className="text-sm text-muted-foreground">

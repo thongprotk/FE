@@ -21,7 +21,7 @@ import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
 import { analyticsService } from "@/services/analytics.service";
 import { deckService } from "@/services/deck.service";
-import type { LearningOverview, Deck } from "@/types/api";
+import type { LearningOverview, DailyActivity, Deck } from "@/types/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
@@ -30,6 +30,7 @@ export default function HeatmapPage() {
   const { isAuthenticated } = useAuth();
   const [heatmapData, setHeatmapData] = useState<{ [key: string]: number }>({});
   const [overview, setOverview] = useState<LearningOverview | null>(null);
+  const [activity365, setActivity365] = useState<DailyActivity[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -47,32 +48,31 @@ export default function HeatmapPage() {
   const loadAnalytics = async () => {
     try {
       setLoading(true);
-      const overviewData = await analyticsService.getOverview();
-      setOverview(overviewData);
+      const [overviewData, activityData, decksData] = await Promise.all([
+        analyticsService.getOverview(),
+        analyticsService.getActivity(365), // fetch đủ 365 ngày cho heatmap
+        deckService.getAll({ limit: 100 }),
+      ]);
 
-      // Load decks for deck-by-deck stats
-      const decksData = await deckService.getAll({ limit: 100 });
+      setOverview(overviewData);
+      setActivity365(activityData);
       setDecks(decksData.items);
 
+      // Build heatmap từ 365 ngày
       const heatmapMap: { [key: string]: number } = {};
-      overviewData.recentActivity.forEach((item) => {
-        heatmapMap[item.date] = item.reviewed;
+      activityData.forEach((item) => {
+        if (item.reviewed > 0) {
+          heatmapMap[item.date] = item.reviewed;
+        }
       });
       setHeatmapData(heatmapMap);
 
-      // Calculate streak
-      calculateStreak(overviewData);
+      calculateStreak(activityData);
 
-      // Calculate average daily cards
-      const totalReviewed = overviewData.recentActivity.reduce(
-        (sum, item) => sum + item.reviewed,
-        0
-      );
-      const avgCards =
-        overviewData.recentActivity.length > 0
-          ? Math.round(totalReviewed / overviewData.recentActivity.length)
-          : 0;
-      setAvgDaily(avgCards);
+      // avgDaily: chỉ tính ngày có activity
+      const activeDays = activityData.filter((d) => d.reviewed > 0);
+      const totalReviewed = activeDays.reduce((sum, d) => sum + d.reviewed, 0);
+      setAvgDaily(activeDays.length > 0 ? Math.round(totalReviewed / activeDays.length) : 0);
     } catch (error: any) {
       toast.error(error.message || "Failed to load analytics");
     } finally {
@@ -80,17 +80,17 @@ export default function HeatmapPage() {
     }
   };
 
-  const calculateStreak = (data: LearningOverview) => {
+  const calculateStreak = (data: DailyActivity[]) => {
     let currentStreak = 0;
-    const today = new Date();
+    const today = new Date().toISOString().split("T")[0];
 
-    for (let i = 0; i < 365; i++) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split("T")[0];
+    // Sắp xếp từ mới nhất đến cũ nhất
+    const sorted = [...data].sort((a, b) => b.date.localeCompare(a.date));
 
-      const activity = data.recentActivity.find((a) => a.date === dateStr);
-      if (activity && activity.reviewed > 0) {
+    for (const item of sorted) {
+      // Bỏ qua hôm nay nếu chưa có activity (streak không bị reset)
+      if (item.date === today && item.reviewed === 0) continue;
+      if (item.reviewed > 0) {
         currentStreak++;
       } else {
         break;
@@ -449,41 +449,47 @@ export default function HeatmapPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {overview.recentActivity.slice(0, 30).map((activity) => (
-                  <div key={activity.date} className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium w-40">
-                        {new Date(activity.date).toLocaleDateString("en-US", {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </span>
-                      <div className="flex-1 mx-4">
-                        <Progress
-                          value={
-                            (activity.reviewed /
-                              Math.max(overview.dueCards, 60)) *
-                            100
-                          }
-                          className="h-2"
-                        />
+              {(() => {
+                // 30 ngày gần nhất, có activity, mới nhất lên đầu
+                const recentDays = [...activity365]
+                  .filter((d) => d.reviewed > 0)
+                  .sort((a, b) => b.date.localeCompare(a.date))
+                  .slice(0, 30);
+                const maxReviewed = Math.max(...recentDays.map((d) => d.reviewed), 1);
+
+                return (
+                  <div className="space-y-3">
+                    {recentDays.map((activity) => (
+                      <div key={activity.date} className="space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="font-medium w-36 shrink-0">
+                            {new Date(activity.date + "T12:00:00").toLocaleDateString("vi-VN", {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </span>
+                          <div className="flex-1 mx-4">
+                            <Progress
+                              value={(activity.reviewed / maxReviewed) * 100}
+                              className="h-2"
+                            />
+                          </div>
+                          <span className="text-muted-foreground text-right text-xs w-32 shrink-0">
+                            {activity.reviewed} reviewed
+                            {activity.mastered > 0 && ` • ${activity.mastered} ✓`}
+                          </span>
+                        </div>
                       </div>
-                      <span className="text-muted-foreground text-right text-xs w-32">
-                        {activity.reviewed} reviewed
-                        {activity.mastered > 0 && ` • ${activity.mastered} ✓`}
-                      </span>
-                    </div>
+                    ))}
+                    {recentDays.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No recent activity. Start studying to see your progress here!
+                      </p>
+                    )}
                   </div>
-                ))}
-                {overview.recentActivity.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No recent activity. Start studying to see your progress
-                    here!
-                  </p>
-                )}
-              </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>

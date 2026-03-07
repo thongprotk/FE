@@ -40,6 +40,7 @@ import {
   Edit2,
   Trash2,
   Play,
+  BrainCircuit,
   Loader2,
   CalendarCheck,
   BicepsFlexed,
@@ -161,7 +162,6 @@ export default function DecksPage() {
         selectedDeck.id,
         editDeckData,
       );
-      console.log("Updated Deck:", updatedDeck);
       setDecks(decks.map((d) => (d.id === updatedDeck.id ? updatedDeck : d)));
       setSelectedDeck(updatedDeck);
       setIsEditDialogOpen(false);
@@ -193,6 +193,10 @@ export default function DecksPage() {
 
   const handleStartReview = (deckId: string) => {
     navigate(`/review?deckId=${deckId}`);
+  };
+
+  const handleStartQuiz = (deckId: string) => {
+    navigate(`/quiz?deckId=${deckId}`);
   };
 
   const openEditDialog = () => {
@@ -484,6 +488,15 @@ export default function DecksPage() {
                   >
                     <Play className="mr-2 h-4 w-4" />
                     Review ({selectedDeck.dueCardCount || 0})
+                  </Button>
+
+                  <Button
+                    onClick={() => handleStartQuiz(selectedDeck.id)}
+                    variant="outline"
+                    className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                  >
+                    <BrainCircuit className="mr-2 h-4 w-4" />
+                    Quiz
                   </Button>
 
                   <Dialog

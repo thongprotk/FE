@@ -5,24 +5,23 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft } from "lucide-react";
 import type { Deck } from "@/types/api";
 
-interface ReviewHeaderProps {
+interface QuizHeaderProps {
   deck: Deck | null;
   currentIndex: number;
   totalCards: number;
-  progress: number;
-  acceptedCount: number;
-  rejectedCount: number;
+  correctCount: number;
+  wrongCount: number;
 }
 
-export const ReviewHeader = ({
+export const QuizHeader = ({
   deck,
   currentIndex,
   totalCards,
-  progress,
-  acceptedCount,
-  rejectedCount,
-}: ReviewHeaderProps) => {
+  correctCount,
+  wrongCount,
+}: QuizHeaderProps) => {
   const navigate = useNavigate();
+  const progress = totalCards > 0 ? (currentIndex / totalCards) * 100 : 0;
 
   return (
     <div className="mb-8">
@@ -37,7 +36,7 @@ export const ReviewHeader = ({
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <h1 className="text-3xl font-bold">Review Cards</h1>
+          <h1 className="text-3xl font-bold">Quiz</h1>
           <p className="text-muted-foreground">
             {deck?.title || "Flashcard Deck"}
           </p>
@@ -54,8 +53,8 @@ export const ReviewHeader = ({
         </div>
         <Progress value={progress} className="h-2" />
         <div className="flex justify-between text-sm">
-          <span className="text-green-600">✓ {acceptedCount} accepted</span>
-          <span className="text-red-600">✗ {rejectedCount} rejected</span>
+          <span className="text-green-600">✓ {correctCount} correct</span>
+          <span className="text-red-600">✗ {wrongCount} wrong</span>
         </div>
       </div>
     </div>
